@@ -15,8 +15,6 @@
 #include "hc_sr04.h"
 
 
-/* Modificador volÃ¡til: variÃ¡vel alterada fora
- * do fluxo contÃ­nuo de operaÃ§Ã£o                */
 volatile uint16_t cont = 0;
 volatile uint16_t tmp = 0;
 
@@ -29,34 +27,6 @@ void timer1_hardware_init(){
 	/* OVerflow enable */
 	TIMER_IRQS->TC1.BITS.TOIE = 1;
 }
-
-volatile uint16_t TIM16_ReadTCNT1( void ){
-	unsigned char sreg;
-	unsigned int i;
-	/* Save global interrupt flag */
-	sreg = SREG;
-	/* Disable interrupts */
-	cli();
-	/* Read TCNT1 into i */
-	i = TCNT1;
-	/* Restore global interrupt flag */
-	SREG = sreg;
-	return i;
-}
-
-void TIM16_WriteTCNT1( uint16_t i ){
-	unsigned char sreg;
-//	uint16_t i;
-	/* Save global interrupt flag */
-	sreg = SREG;
-	/* Disable interrupts */
-	cli();/* Set TCNT1 to i */
-	TCNT1 = i;
-	/* Restore global interrupt flag */
-	SREG = sreg;
-}
-
-
 void init_hc_sr04(){
 	timer1_hardware_init();
 
@@ -64,8 +34,8 @@ void init_hc_sr04(){
 	DDRD |= (1 << TRIG_PIN);//|(1 << PB2)|(1 << PB5);
 
 	//	/* PINO PB0(ICP1) como entrada e pull ups */
-	GPIO_B->DDR  = ~(1 << PB0);// | (1 << PD3));   /* DDRD  = ~((1 << PD2) | (1 << PD3)).  */
-	GPIO_B->PORT = (1 << PB0);// | (1 << PD3);  /* PORTD = (1 << PD2) | (1 << PD3) */
+	GPIO_B->DDR  = ~(1 << PB0);
+	GPIO_B->PORT = (1 << PB0);
 
 //	/* Habilita IRQ global */
 	sei();
@@ -77,37 +47,14 @@ uint16_t distancia(){
 	}
 	return cont;
 }
-//
-//
-//
-//ISR(INT0_vect)
-//{
-//	if(tmp==0){
-//			TIM16_WriteTCNT1(0);
-//			CPL_BIT(EICRA,ISC00);
-//			//CPL_BIT(PORTB,5);
-//			tmp ++;
-//		}else{
-//			cont = TIM16_ReadTCNT1();
-//			CPL_BIT(EICRA,ISC00);
-//			//CPL_BIT(PORTB,5);
-//			tmp=0;
-//		}
-//
-//}
-
 ISR(TIMER1_OVF_vect)
 {
-	//CPL_BIT(PORTB,PB5);
-
-	//tmp=0;
-	//cont=0;
+	/* Interrupção para gerar um Pulso no pino do trigger*/
 	CLR_BIT(PORT_TRIG,TRIG_PIN);
 	_delay_us(1);
 	SET_BIT(PORT_TRIG,TRIG_PIN);
 	_delay_us(10);
 	CLR_BIT(PORT_TRIG,TRIG_PIN);
-
 }
 
 ISR(TIMER1_CAPT_vect)      //interrupção por captura do valor do TCNT1

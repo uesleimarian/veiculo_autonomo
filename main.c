@@ -16,7 +16,6 @@
 #include "controle_pwm.h"
 #include "hc_sr04.h"
 
-
 void f_stateA(void);
 void f_stateB(void);
 void f_stateC(void);
@@ -25,15 +24,16 @@ void f_state_Stop(void);
 void f_state_autonomo(void);
 
 
+#define L_TCRT PC0
+#define R_TCRT PC1
+#define PORT_TCRT PORTC
+#define DDR_TCRT DDRC
 
 #define  DIST_MIN 5000
 
-#define  VEL_MAX 255
-#define  vel_med 255
-#define  vel_min 20
 
 
-/* DefiniÃ§Ã£o dos estados */
+/* Definição dos estados */
 typedef enum {
 	STATE_A,
 	STATE_B,
@@ -44,7 +44,7 @@ typedef enum {
 	NUM_STATES
 } state_t;
 
-/* DefiniÃ§Ã£o da estrutura mantedora do vetor de estados */
+/* Definição da estrutura mantedora do vetor de estados */
 typedef struct {
 	state_t myState;
 	void (*func)(void);
@@ -75,11 +75,10 @@ int main(){
 	uint8_t data[8] = {0xaa, 0xbb, 0xcc, 0xdd};
 
 	DDRB |= (1 << PB1)|(1 << PB2)|(1 << PB5);
-//	DDRC |= (1 << PC0)|(1 << PC1)|(1 << PC2)|(1 << PC3)|(1 << PC4);
+	DDR_TCRT |= ~((1 << L_TCRT)|(1 << R_TCRT));
 
-	//	/* Obtem o stream de depuração */
+	/* Obtem o stream de depuração */
 	FILE *debug = get_usart_stream();
-
 	/* Inicializa hardware da USART */
 	USART_Init(B9600);
 
@@ -91,13 +90,11 @@ int main(){
 	/* Ativa o modo IDle */
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
-
 	while (1){
 
 			/* Pára o main até receber os dado da USART */
 		if (!is_rx_complete()){
 			uart1_rx_pkg_with_irq(data, 1);
-
 			fprintf(debug,"%d\n\r",dist);
 			_delay_ms(5); //
 		}
@@ -109,31 +106,27 @@ int main(){
 			/* Programa o próximo recebimento */
 			uart1_rx_pkg_with_irq(data, 1);
 		}
-		//fprintf(debug,"-\n\r");
 		(*myFSM[curr_state].func)();
-		//dist=distancia();
-
 	}
 }
 
 void set_estado(volatile uint8_t tmp){
 
-
-
-		if(tmp== 'F'){ //  W
+	if(curr_state != STATE_AUTONOMO){//
+		if(tmp== 'F'){ //  Frente
 			curr_state = STATE_A;
-		}else if(tmp== 'B'){ //S
+		}else if(tmp== 'B'){  //trás
 			curr_state = STATE_C;
-		}else if(tmp == 'R'){ // D
+		}else if(tmp == 'R'){ // Direita
 			curr_state = STATE_B;
-		}else if(tmp== 'L'){ /// A
+		}else if(tmp== 'L'){  // Esquerda
 			curr_state = STATE_D;
-		}else if(tmp== 'S'){
+		}else if(tmp== 'S'){  //Parado
 			curr_state = STATE_STOP;
-		}else if(tmp== 'X'){
-			vel=90;
+		}else if(tmp== 'X'){  //Ativa estado autonomo do carrinho como seguidor de linha
+			vel=105;
 			curr_state = STATE_AUTONOMO;
-		}else if(tmp== 'q'){
+		}else if(tmp== 'q'){  //Velocidade máxima
 			vel=255;
 		}else if(tmp== '9'){
 			vel=235;
@@ -153,13 +146,14 @@ void set_estado(volatile uint8_t tmp){
 			vel=106;
 		}else if(tmp== '1'){
 			vel=90;
-		}else if(tmp== '0'){
+		}else if(tmp== '0'){ //Velocidade mínima
 			vel=0;
-			//curr_state = STATE_STOP;
-
 		}
+	}else if(tmp== 'x'){ //Velocidade mínima
+			vel=154;
+			curr_state = STATE_STOP;
+	}
 }
-
 
 void f_stateA(void){
 	dist=distancia();
@@ -168,19 +162,15 @@ void f_stateA(void){
 	}else{
 		stop();
 	}
-
 }
 
 void f_stateB(void){
 	dist=distancia();
-
 	if(dist>=DIST_MIN){
 			direita(vel);
 		}else{
 			stop();
 		}
-
-	//direita(vel);
 }
 
 void f_stateC(void){
@@ -188,26 +178,18 @@ void f_stateC(void){
 }
 
 void f_stateD(void){
-
 	dist=distancia();
 		if(dist>=DIST_MIN){
 			esquerda(vel);
 		}else{
 			stop();
 		}
-
-//	esquerda(vel);
 }
 
 void f_state_Stop(void){
 	stop();
 	if (!is_rx_complete()){
-		/* Ativa o modo IDle */
-
-		set_sleep_mode(SLEEP_MODE_IDLE);
-
 		_delay_ms(5);
-
 		/* Desabilita Interrupção por captura(IPC1) para não ser acordado pela interrupção do TIMER1*/
 		TIMER_IRQS->TC1.BITS.ICIE = 0;
 		TIMER_IRQS->TC1.BITS.TOIE = 0;
@@ -221,5 +203,14 @@ void f_state_Stop(void){
 }
 
 void f_state_autonomo(void){
-	SET_BIT(PORTB,PB5);
+	dist=distancia();
+		if(dist>=DIST_MIN){
+			if((!TST_BIT(PINC,R_TCRT))&&(!TST_BIT(PINC,L_TCRT)))
+				move_frente(vel);
+			else if(TST_BIT(PINC,R_TCRT))
+				direita(vel);
+			if(TST_BIT(PINC,L_TCRT))
+				esquerda(vel);
+		}else
+			stop();
 }
