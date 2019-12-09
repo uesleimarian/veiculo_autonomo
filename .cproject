@@ -113,7 +113,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="display|controle_pwm_carrinho.c|lib/avr_spi.c|lib/avr_twi_master.c|display/led_display.c|display/lcd_i2c.c|display/lcd.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="fsm_and_usart.c|08_main_fsm.c|teste_usart.c|display|controle_pwm_carrinho.c|lib/avr_spi.c|lib/avr_twi_master.c|display/led_display.c|display/lcd_i2c.c|display/lcd.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                         					
                     </sourceEntries>
                     				

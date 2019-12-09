@@ -72,7 +72,7 @@ void timer2_pwm_hardware_init(){
 //		TIMER_0->OCRB = dutty;
 //}
 
-void move_frente(uint8_t vel){
+void move_tras(uint8_t vel){
 	//PWM1N = 0;
 	CLR_BIT(TCCR0A,COM0A1);
 	CLR_BIT(PORTD, 6);      //PD6 = PWM1N
@@ -87,18 +87,38 @@ void move_frente(uint8_t vel){
 }
 
 
-void move_tras(uint8_t vel){
+void move_frente(uint8_t vel){
 
 	SET_BIT(TCCR0A,COM0A1); // habilita o pino do pwm -  "SET_BIT(TCCR0A,COM0A1)==SET_BIT(registrador,bit)"
 	PWM1N = vel;			//velocidade
-	CLR_BIT(TCCR0A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
+	CLR_BIT(TCCR0A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital "SET_BIT(TCCR0A,COM0A1)==SET_BIT(registrador,bit)"
 	CLR_BIT(PORTD,5);
-
 
 	SET_BIT(TCCR2A,COM0A1);
 	PWM2N = vel;
-	CLR_BIT(TCCR2A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
+	CLR_BIT(TCCR2A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital "SET_BIT(TCCR0A,COM0A1)==SET_BIT(registrador,bit)"
 	CLR_BIT(PORTD,3);
+
+
+
+
+
+
+
+
+
+
+
+//	SET_BIT(TCCR0A,COM0A1); // habilita o pino do pwm -  "SET_BIT(TCCR0A,COM0A1)==SET_BIT(registrador,bit)"
+//	PWM1N = vel;			//velocidade
+//	CLR_BIT(TCCR0A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
+//	CLR_BIT(PORTD,5);
+//
+//
+//	SET_BIT(TCCR2A,COM0A1);
+//	PWM2N = vel;
+//	CLR_BIT(TCCR2A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
+//	CLR_BIT(PORTD,3);
 
 }
 
@@ -117,7 +137,11 @@ void stop(){
 }
 
 void esquerda(uint8_t vel){
-	stop();//desligar tudo
+	//stop();//desligar tudo
+	CLR_BIT(TCCR2A,COM0A1);  // Desabilita o pwm e ativa ele como saida digital
+	CLR_BIT(PORTB, 3); //PB3 = PWM2N
+	CLR_BIT(TCCR2A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
+	CLR_BIT(PORTD,3);  //PD3 = PWM2
 
 	SET_BIT(TCCR0A,COM0A1); // habilita o pino do pwm -  "SET_BIT(TCCR0A,COM0A1)==SET_BIT(registrador,bit)"
 	PWM1N = vel;			//velocidade
@@ -128,7 +152,11 @@ void esquerda(uint8_t vel){
 
 }
 void direita(uint8_t vel){
-	stop();//desligar tudo
+	//stop();//desligar tudo
+	CLR_BIT(TCCR0A,COM0A1);  // Desabilita o pwm e ativa ele como saida digital
+	CLR_BIT(PORTD, 6);   //PD6 = PWM1N
+	CLR_BIT(TCCR0A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
+	CLR_BIT(PORTD, 5);	 //PD5 = PWM1
 
 	SET_BIT(TCCR2A,COM0A1);
 	PWM2N = vel;
