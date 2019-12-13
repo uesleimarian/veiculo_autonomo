@@ -10,10 +10,6 @@
 #include "avr_timer.h"
 #include "avr_gpio.h"
 #include "controle_pwm.h"
-
-
-
-
 /**
   * @brief  Configura hardware do timer0 em modo PWM.
   * @param	Nenhum
@@ -32,11 +28,11 @@ void timer0_pwm_hardware_init(){
 	TIMER_0->TCCRA = SET(WGM01) | SET(WGM00) | SET(COM0B1) | SET(COM0A1);
 	TIMER_0->TCCRB = SET(CS00)  | SET(CS01);// Prescaler de 64
 
-	/* OCRA define frequÃªncia do PWM */
-	TIMER_0->OCRA = 0;
+	/* OCRA define razão cíclica:  255 / OCRA */
+	TIMER_0->OCRA = 130;
 
-	/* OCRB define razÃ£o cÃ­clica:  OCRB / OCRA */
-	TIMER_0->OCRB = 40;
+	/* OCRB define razão cíclica:  255 / OCRB */
+	TIMER_0->OCRB = 130;
 }
 
 
@@ -53,24 +49,16 @@ void timer2_pwm_hardware_init(){
 	GPIO_D->DDR |= SET(PD3);
 	GPIO_B->DDR |= SET(PB3);
 
-
-
-	/* WGM02, WGM01 WGM00 setados: modo PWM rÃ¡pido com TOP em OCRA */
+	/*WGM01 WGM00 setados: modo PWM rápido com TOP em 255 */
 	TIMER_2->TCCRA = SET(WGM01) | SET(WGM00) | SET(COM0B1)  | SET(COM0A1);
 	TIMER_2->TCCRB = SET(CS22); // Prescaler de 64        | SET(CS21)  | SET(CS20);
 
-	/* OCRA d11efine frequÃªncia do PWM */
-	TIMER_2->OCRA = 255;
+	/* OCRA define razão cíclica:  255 / OCRA */
+	TIMER_2->OCRA = 130;
 
-	/* OCRB define razÃ£o cÃ­clica:  OCRB / OCRA */
+	/* OCRB define razão cíclica:  255 / OCRB */
 	TIMER_2->OCRB = 130;
 }
-
-//void set_dutty(uint8_t dutty){
-//
-//	if (dutty <= TIMER_0->OCRA)
-//		TIMER_0->OCRB = dutty;
-//}
 
 void move_tras(uint8_t vel){
 	//PWM1N = 0;
@@ -86,7 +74,6 @@ void move_tras(uint8_t vel){
 	PWM2 = vel;
 }
 
-
 void move_frente(uint8_t vel){
 
 	SET_BIT(TCCR0A,COM0A1); // habilita o pino do pwm -  "SET_BIT(TCCR0A,COM0A1)==SET_BIT(registrador,bit)"
@@ -98,28 +85,6 @@ void move_frente(uint8_t vel){
 	PWM2N = vel;
 	CLR_BIT(TCCR2A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital "SET_BIT(TCCR0A,COM0A1)==SET_BIT(registrador,bit)"
 	CLR_BIT(PORTD,3);
-
-
-
-
-
-
-
-
-
-
-
-//	SET_BIT(TCCR0A,COM0A1); // habilita o pino do pwm -  "SET_BIT(TCCR0A,COM0A1)==SET_BIT(registrador,bit)"
-//	PWM1N = vel;			//velocidade
-//	CLR_BIT(TCCR0A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
-//	CLR_BIT(PORTD,5);
-//
-//
-//	SET_BIT(TCCR2A,COM0A1);
-//	PWM2N = vel;
-//	CLR_BIT(TCCR2A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
-//	CLR_BIT(PORTD,3);
-
 }
 
 void stop(){
@@ -129,7 +94,6 @@ void stop(){
 	CLR_BIT(TCCR0A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
 	CLR_BIT(PORTD, 5);	 //PD5 = PWM1
 
-
 	CLR_BIT(TCCR2A,COM0A1);  // Desabilita o pwm e ativa ele como saida digital
 	CLR_BIT(PORTB, 3); //PB3 = PWM2N
 	CLR_BIT(TCCR2A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
@@ -137,7 +101,7 @@ void stop(){
 }
 
 void esquerda(uint8_t vel){
-	//stop();//desligar tudo
+
 	CLR_BIT(TCCR2A,COM0A1);  // Desabilita o pwm e ativa ele como saida digital
 	CLR_BIT(PORTB, 3); //PB3 = PWM2N
 	CLR_BIT(TCCR2A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital
@@ -148,11 +112,9 @@ void esquerda(uint8_t vel){
 	CLR_BIT(TCCR0A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital "SET_BIT(TCCR0A,COM0A1)==SET_BIT(registrador,bit)"
 	CLR_BIT(PORTD,5);
 
-
-
 }
 void direita(uint8_t vel){
-	//stop();//desligar tudo
+
 	CLR_BIT(TCCR0A,COM0A1);  // Desabilita o pwm e ativa ele como saida digital
 	CLR_BIT(PORTD, 6);   //PD6 = PWM1N
 	CLR_BIT(TCCR0A,COM0B1);  // Desabilita o pwm e ativa ele como saida digital

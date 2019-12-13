@@ -63,6 +63,6 @@ ISR(TIMER1_CAPT_vect)      //interrupção por captura do valor do TCNT1
 	if(!TST_BIT(TCCR1B,ICES1))//lê o valor de contagem do TC1 na borda de subida do sinal
 		tmp = ICR1;//salva a primeira contagem para determinar a largura do pulso
 	else  //lê o valor de contagem do TC1 na borda de descida do sinal
-		cont = (ICR1 - tmp);/*agora ICR1 tem o valor do TC1 na borda de  descida do sinal, então calcula a distância */
+		cont = (ICR1 - tmp);/*agora ICR1 tem o valor do TC1 na borda de  descida do sinal*/
 }
 
